@@ -28,7 +28,6 @@ class Board(pygame.sprite.Sprite):
                 sys.exit()
 
     def display_board(self):
-        print('hello')
         #text
         explanation_text_surf = self.font_small.render(' Press ENTER to start a new day ', False, 'Black')
         explanation_text_rect = explanation_text_surf.get_rect(topleft = (30, 35))
