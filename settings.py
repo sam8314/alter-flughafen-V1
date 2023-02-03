@@ -9,7 +9,6 @@ MIDGREEN =(43.1, 58.8, 48.6)
 DEEPGREEN =(37.3, 47.8, 47.5)
 LIGHTGREEN =(76.1, 87.8, 60.4)
 
-<<<<<<< HEAD
 def FORMAT(strg):
 	#fix pair OF red/purple mushroom
 	res =''
@@ -41,8 +40,6 @@ SPECIES_TILES = ['Small',
 				'Two_purple_mushrooms',
 				'One_red_mushroom',
 				'Two_red_mushrooms']
-=======
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
 # overlay positions 
 OVERLAY_POSITIONS = {
