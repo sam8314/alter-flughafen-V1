@@ -15,11 +15,10 @@ class Player(pygame.sprite.Sprite):
 		
 		self.known_species = Stack()
 		self.well_known_species = Stack()
-
-		self.available_tools = Stack()
-		self.possessed_tools = Stack()		
 	
 		# tools
+		self.available_tools = Stack()
+		self.possessed_tools = Stack()		
 		self.tool_index = 0
 		self.selected_tool = 'glass'
 		
@@ -100,18 +99,34 @@ class Player(pygame.sprite.Sprite):
 			if keys[pygame.K_UP]:
 				self.direction.y = -1
 				self.status = 'up'
+				if keys[pygame.K_LCTRL]:
+					self.speed = 300
+				else:
+					self.speed = 170
 			elif keys[pygame.K_DOWN]:
 				self.direction.y = 1
 				self.status = 'down'
+				if keys[pygame.K_LCTRL]:
+					self.speed = 300
+				else:
+					self.speed = 170
 			else:
 				self.direction.y = 0
 
 			if keys[pygame.K_RIGHT]:
 				self.direction.x = 1
 				self.status = 'right'
+				if keys[pygame.K_LCTRL]:
+					self.speed = 300
+				else:
+					self.speed = 170
 			elif keys[pygame.K_LEFT]:
 				self.direction.x = -1
 				self.status = 'left'
+				if keys[pygame.K_LCTRL]:
+					self.speed = 300
+				else:
+					self.speed = 170
 			else:
 				self.direction.x = 0
 

@@ -146,7 +146,8 @@ class Overlay:
 					'Press t to view your tools',
 					'Press SPACE to use your active tool',
 					'Press q to change your active tool', 
-					'Press m to return to the homemenu']
+					'Press m to return to the homemenu',
+					'Press Left Control to run']
 
 		#hover animation
 		mouse_pos = pygame.mouse.get_pos()
@@ -162,7 +163,7 @@ class Overlay:
 			self.display_surface.blit(reveal_title_surf, reveal_title_rect)			
 
 		if self.displaying_keys_shortcuts:
-			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(960, 0, 480, 140), border_bottom_left_radius=10)
+			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(960, 0, 480, 150), border_bottom_left_radius=10)
 			#hover animation
 			if exit_cross_rect.collidepoint(mouse_pos):
 				exit_cross_surf = self.font_small.render('[x]', False, 'Black')
