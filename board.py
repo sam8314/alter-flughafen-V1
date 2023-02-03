@@ -1,11 +1,6 @@
 import sys
-<<<<<<< HEAD
 import pygame
 import time
-=======
-import pygame 
-from timer import Timer
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 from settings import *
 
 class Board(pygame.sprite.Sprite):
@@ -15,7 +10,6 @@ class Board(pygame.sprite.Sprite):
         self.in_board = True 
         self.hasnt_been_board = True
         self.player = player
-<<<<<<< HEAD
         self.selected_tool = None
         self.clicking_new_day = False
 
@@ -35,25 +29,11 @@ class Board(pygame.sprite.Sprite):
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if pygame.key.get_pressed()[pygame.K_RETURN] or (event.type == pygame.MOUSEBUTTONDOWN and pygame.Rect(160, 210, 240, 380).collidepoint(mouse_pos)):
-=======
-
-        self.font_big = pygame.font.Font('../font/LycheeSoda.ttf', 70)
-        self.font_small = pygame.font.Font('../font/LycheeSoda.ttf', 30)
-        self.font_smaller = pygame.font.Font('../font/LycheeSoda.ttf', 20)
-
-    def run(self):
-        self.hasnt_been_board = False
-        timer = Timer(1300, activefunc = self.display_board)
-        timer.activate()
-        for event in pygame.event.get():
-            if pygame.key.get_pressed()[pygame.K_RETURN]:
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
                 self.player.status = 'up_idle'
                 self.player.sleep = True
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-<<<<<<< HEAD
             if not(self.player.available_tools.is_empty()) and (event.type == pygame.MOUSEBUTTONDOWN and pygame.Rect(700, 250, 420, 45).collidepoint(mouse_pos)):
                 if not self.player.possessed_tools.is_here(self.player.available_tools.peek()):
                     self.player.possessed_tools.push(self.player.available_tools.pop())
@@ -150,15 +130,3 @@ class Board(pygame.sprite.Sprite):
                     pygame.draw.rect(self.display_surface, 'azure4', box1, width = 4, border_radius=10)
 
                 
-=======
-
-    def display_board(self):
-        print('hello')
-        #text
-        explanation_text_surf = self.font_small.render(' Press ENTER to start a new day ', False, 'Black')
-        explanation_text_rect = explanation_text_surf.get_rect(topleft = (30, 35))
-
-        #display
-        pygame.draw.rect(self.display_surface, 'White', explanation_text_rect)
-        self.display_surface.blit(explanation_text_surf, explanation_text_rect)
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf

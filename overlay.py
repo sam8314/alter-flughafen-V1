@@ -1,5 +1,4 @@
 import sys
-<<<<<<< HEAD
 import time
 import pygame
 from settings import *
@@ -10,35 +9,22 @@ from inventory import EquipmentInventory, SpeciesDictionary
 from intromenu import Intromenu
 from popup import PopUp
 
-=======
-import pygame
-from settings import *
-
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 class Overlay:
 	def __init__(self,player):
 
 		# general setup
 		self.display_surface = pygame.display.get_surface()
 		self.player = player
-<<<<<<< HEAD
 		self.start_time = 0
-=======
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
 		# imports 
 		overlay_path = '../graphics/overlay/'
 		self.tools_surf = {tool: pygame.image.load(f'{overlay_path}{tool}.png').convert_alpha() for tool in TOOLS}
-<<<<<<< HEAD
-=======
-		#self.seeds_surf = {seed: pygame.image.load(f'{overlay_path}{seed}.png').convert_alpha() for seed in player.seeds}
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 		self.font_big = pygame.font.Font('../font/LycheeSoda.ttf', 70)
 		self.font_mid = pygame.font.Font('../font/LycheeSoda.ttf', 50)
 		self.font_small = pygame.font.Font('../font/LycheeSoda.ttf', 30)
 		self.font_smaller = pygame.font.Font('../font/LycheeSoda.ttf', 15)
 
-<<<<<<< HEAD
 		#instances
 		self.board = Board(self.player)
 		self.toggle_bio_species = Toggle()
@@ -119,12 +105,6 @@ class Overlay:
 
 	def display_lvl_xp_tool_icon(self):
 		lvl = self.player.get_player_level(self.player.player_xp)
-=======
-		self.display_keys_shortcuts = True
-
-	def display(self, xp):
-		lvl = self.player.get_player_level(xp)
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
 		# tool
 		if not self.player.possessed_tools.is_empty():
@@ -133,11 +113,7 @@ class Overlay:
 			self.display_surface.blit(tool_surf,tool_rect)
 
 		#xp and level
-<<<<<<< HEAD
 		xp_txt_surf = self.font_small.render('  '+str(self.player.player_xp)+' XP  ', False, 'White')
-=======
-		xp_txt_surf = self.font_small.render('  '+str(xp)+' XP  ', False, 'White')
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 		xp_txt_rect = xp_txt_surf.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT))
 		lvl_txt_surf = self.font_small.render('  Level '+str(lvl)+'  ', False, 'White')
 		lvl_txt_rect = lvl_txt_surf.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT-30))
@@ -150,7 +126,6 @@ class Overlay:
 		else:
 			color = 'cornflowerblue'
 
-<<<<<<< HEAD
 		if self.displaying_lvl_xp:
 			background_rect = pygame.Rect(lvl_txt_rect.x, lvl_txt_rect.y, xp_txt_rect.width+40, xp_txt_rect.height + lvl_txt_rect.height)
 			pygame.draw.rect(self.display_surface, color,background_rect, border_top_left_radius = 5)
@@ -158,20 +133,6 @@ class Overlay:
 			self.display_surface.blit(lvl_txt_surf, lvl_txt_rect)
 
 	def display_shortcuts(self):
-=======
-		background_rect = pygame.Rect(lvl_txt_rect.x, lvl_txt_rect.y, xp_txt_rect.width+40, xp_txt_rect.height + lvl_txt_rect.height)
-		pygame.draw.rect(self.display_surface, color,background_rect, border_top_left_radius = 5)
-		self.display_surface.blit(xp_txt_surf, xp_txt_rect)
-		self.display_surface.blit(lvl_txt_surf, lvl_txt_rect)
-
-	def display_interaction_options(self):
-		pygame.draw.rect(self.display_surface, 'White', pygame.Rect(150, 640, 1240, 640))
-		possible_interactions_surf = self.font_small.render('Interact >', False, 'Black')
-		possible_interactions_rect = possible_interactions_surf.get_rect(topleft = (160, 685))
-		self.display_surface.blit(possible_interactions_surf, possible_interactions_rect)
-	
-	def display_keys(self):
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 		reveal_title_surf = self.font_smaller.render('Show key shortcuts >', False,'White')
 		reveal_title_rect = reveal_title_surf.get_rect(topright = (1270,5))
 		
@@ -191,11 +152,7 @@ class Overlay:
 		mouse_pos = pygame.mouse.get_pos()
 
 		#display
-<<<<<<< HEAD
 		if not self.displaying_keys_shortcuts:
-=======
-		if not self.display_keys_shortcuts:
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(1130, 0, 150, 28), border_bottom_left_radius=10)
 			#hover animation
 			mouse_pos = pygame.mouse.get_pos()
@@ -204,11 +161,7 @@ class Overlay:
 
 			self.display_surface.blit(reveal_title_surf, reveal_title_rect)			
 
-<<<<<<< HEAD
 		if self.displaying_keys_shortcuts:
-=======
-		if self.display_keys_shortcuts:
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(960, 0, 480, 140), border_bottom_left_radius=10)
 			#hover animation
 			if exit_cross_rect.collidepoint(mouse_pos):
@@ -231,7 +184,6 @@ class Overlay:
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				x,y = event.pos
 				if exit_cross_rect.collidepoint(x,y):
-<<<<<<< HEAD
 					self.displaying_keys_shortcuts = False
 				
 				if reveal_title_rect.collidepoint(x,y): #isn't perfect but it works
@@ -319,9 +271,3 @@ class Overlay:
 		text_rect = text_surf.get_rect(center = (640, 15))
 		pygame.draw.rect(self.display_surface, 'Grey', text_rect, border_bottom_left_radius=10, border_bottom_right_radius=10)
 		self.display_surface.blit(text_surf, text_rect)
-=======
-					self.display_keys_shortcuts = False
-				
-				if reveal_title_rect.collidepoint(x,y): #isn't perfect but it works
-					self.display_keys_shortcuts = True
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf

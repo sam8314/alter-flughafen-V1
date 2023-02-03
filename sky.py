@@ -5,29 +5,14 @@ from sprites import Generic
 from random import randint, choice
 
 class Sky:
-<<<<<<< HEAD
 	def __init__(self, overlay):
-=======
-	def __init__(self):
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 		self.display_surface = pygame.display.get_surface()
 		self.full_surf = pygame.Surface((SCREEN_WIDTH,SCREEN_HEIGHT))
 		self.start_color = [255,255,255]
 		self.end_color = (38,101,189)
-<<<<<<< HEAD
 		self.overlay = overlay
 		self.font_small = pygame.font.Font('../font/LycheeSoda.ttf', 30)
 
-=======
-		self.font_small = pygame.font.Font('../font/LycheeSoda.ttf', 30)
-
-	def display_popup(self):
-		text_surf = self.font_small.render('  it is getting dark, you should go to the board  ', False, 'Black')
-		text_rect = text_surf.get_rect(center = (640, 15))
-		pygame.draw.rect(self.display_surface, 'Grey', text_rect, border_bottom_left_radius=10, border_bottom_right_radius=10)
-		self.display_surface.blit(text_surf, text_rect)
-
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 	def display(self, dt):
 		for index, value in enumerate(self.end_color):
 			if self.start_color[index] > value:
@@ -37,11 +22,7 @@ class Sky:
 		self.display_surface.blit(self.full_surf, (0,0), special_flags = pygame.BLEND_RGBA_MULT)
 
 		if self.start_color[0]<130:
-<<<<<<< HEAD
 			self.overlay.displaying_getting_dark = True
-=======
-			self.display_popup()
->>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
 class Drop(Generic):
 	def __init__(self, surf, pos, moving, groups, z):
