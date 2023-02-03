@@ -2,7 +2,11 @@ import sys
 import pygame
 from settings import *
 
+<<<<<<< HEAD
 class Stack:
+=======
+class Stack2:
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
     def __init__(self):
         self.elements = []
 
@@ -14,7 +18,11 @@ class Stack:
             return []
 
         elif self.get_size() == 1:
+<<<<<<< HEAD
             result = self.peek()
+=======
+            result = self.peek
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
             self = []
             return result
 
@@ -60,13 +68,21 @@ class Stack:
             res.append(element)
         return res
         
+<<<<<<< HEAD
 class SpeciesDictionary(pygame.sprite.Sprite):
+=======
+class DisplayInventory(pygame.sprite.Sprite):
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
     def __init__(self, wiki):
         pygame.sprite.Sprite.__init__(self)
         self.display_surface = pygame.display.get_surface()
         self.in_inventory_menu = True
         self.hasnt_opened_invent = True
+<<<<<<< HEAD
         self.current_slide = 0
+=======
+        self.default_slide = 0
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
         self.sel_species_wiki = None
 
         self.font_big = pygame.font.Font('../font/LycheeSoda.ttf', 70)
@@ -76,7 +92,11 @@ class SpeciesDictionary(pygame.sprite.Sprite):
         self.wiki = wiki
 
         if self.hasnt_opened_invent:
+<<<<<<< HEAD
             self.known_species = Stack()
+=======
+            self.known_species = Stack2()
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
     def display_inventory_info(self, nb_known_species, player_xp):
         #text
@@ -98,7 +118,20 @@ class SpeciesDictionary(pygame.sprite.Sprite):
         self.display_surface.blit(title_text_surf, title_text_rect)
         self.display_surface.blit(exit_text_surf, exit_text_rect)
         self.display_surface.blit(stats_text_surf, stats_text_rect)
+<<<<<<< HEAD
    
+=======
+
+    def format_species_name_string(self, strg):
+        res =''
+        for char in strg:
+            if char == '_':
+                res+=' '
+            else:
+                res+= char
+        return(res)
+    
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
     def display_species_slide(self, j, known_species_stack, well_known_species):
         split_stack = known_species_stack.partition(5)
         slide_index = [j for j in range(0, len(split_stack))]
@@ -111,7 +144,11 @@ class SpeciesDictionary(pygame.sprite.Sprite):
             pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(width_i, 240, 200, 320), border_radius=10) #background canvas
 
             #name of species :
+<<<<<<< HEAD
             name_species_i_surf = self.font_smaller.render(FORMAT(species), False, 'Black')
+=======
+            name_species_i_surf = self.font_smaller.render(self.format_species_name_string(species), False, 'Black')
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
             name_species_i_rect = name_species_i_surf.get_rect(center = (width_i+100, 530))
 
             #icon of species
@@ -187,7 +224,11 @@ class SpeciesDictionary(pygame.sprite.Sprite):
 
     def display_known_species(self, known_species_stack, well_known_species):      
         if not known_species_stack.is_empty():
+<<<<<<< HEAD
             self.display_species_slide(self.current_slide, known_species_stack, well_known_species)               
+=======
+            self.display_species_slide(self.default_slide, known_species_stack, well_known_species)               
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
             #click on arrow slides the caroussel
             mouse_pos = pygame.mouse.get_pos()
@@ -197,24 +238,56 @@ class SpeciesDictionary(pygame.sprite.Sprite):
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if pygame.Rect(1200, 410,10, 10).collidepoint(mouse_pos):
+<<<<<<< HEAD
                         self.current_slide += 1
                         self.display_species_slide(self.current_slide, known_species_stack, well_known_species)
                         
                     if pygame.Rect(80, 410,10, 10).collidepoint(mouse_pos):
                         self.current_slide -= 1
                         self.display_species_slide(self.current_slide, known_species_stack, well_known_species)
+=======
+                        self.default_slide += 1
+                        self.display_species_slide(self.default_slide, known_species_stack, well_known_species)
+                        
+                    if pygame.Rect(80, 410,10, 10).collidepoint(mouse_pos):
+                        self.default_slide -= 1
+                        self.display_species_slide(self.default_slide, known_species_stack, well_known_species)
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
                 if pygame.key.get_pressed()[pygame.K_q]:
                     self.in_inventory_menu = False
 
     def display_inventory_menu(self, known_species_stack, well_known_species, player_xp): #when i key is pressed
         self.hasnt_opened_invent = False
         size = known_species_stack.get_size()
+<<<<<<< HEAD
         if not self.wiki.in_menu:
             self.display_inventory_info(size, player_xp)
             self.display_known_species(known_species_stack, well_known_species)
         else:
             self.wiki.display_wiki(self.sel_species_wiki)
     
+=======
+        self.default_slide = 0
+        while self.in_inventory_menu:
+            if not self.wiki.in_menu:
+                self.display_inventory_info(size, player_xp)
+                self.display_known_species(known_species_stack, well_known_species)
+                for event in pygame.event.get():
+                    if pygame.key.get_pressed()[pygame.K_q]:
+                            self.in_inventory_menu = False
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            else:
+                self.wiki.display_wiki(self.sel_species_wiki)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()               
+            
+            pygame.display.update()
+
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
     def get_player_level(self, xp):
         if 0<=xp<100:
             return 0
@@ -239,7 +312,11 @@ class EquipmentInventory(pygame.sprite.Sprite):
         self.font_smaller = pygame.font.Font('../font/LycheeSoda.ttf', 20)
 
         if self.hasnt_opened_invent:
+<<<<<<< HEAD
             self.tools_inventory = Stack()
+=======
+            self.tools_inventory = Stack2()
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
     def display_inventory_info(self, nb_possessed_tools):
         #text
@@ -262,12 +339,39 @@ class EquipmentInventory(pygame.sprite.Sprite):
         self.display_surface.blit(title_text_surf, title_text_rect)
         self.display_surface.blit(exit_text_surf, exit_text_rect)
         self.display_surface.blit(stats_text_surf, stats_text_rect)
+<<<<<<< HEAD
       
     def display_inventory_menu(self, nb_possessed_tools): #when t key is pressed
         self.hasnt_opened_invent = False
 
         self.display_inventory_info(nb_possessed_tools)
         self.display_tools()
+=======
+    
+    def format_tool_name_string(self, strg):
+        res =''
+        for char in strg:
+            if char == '_':
+                res+=' '
+            else:
+                res+= char
+        return(res)
+    
+    def display_inventory_menu(self, nb_possessed_tools): #when t key is pressed
+        self.hasnt_opened_invent = False
+        while self.in_inventory_menu:
+            self.display_inventory_info(nb_possessed_tools)
+            self.display_tools()
+            
+            for event in pygame.event.get():
+                if pygame.key.get_pressed()[pygame.K_q]:
+                        self.in_inventory_menu = False
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            
+            pygame.display.update()
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
 
     def display_tools(self):
         
@@ -412,4 +516,12 @@ class EquipmentInventory(pygame.sprite.Sprite):
                 pygame.draw.rect(self.display_surface, 'White', pygame.Rect(685, 480, 140, 25), border_radius=10)
                 self.display_surface.blit(available_surf, available_rect)
             self.display_surface.blit(name_tool_surf, name_tool_rect)
+<<<<<<< HEAD
             self.display_surface.blit(icon_i, icon_i_rect)
+=======
+            self.display_surface.blit(icon_i, icon_i_rect)
+
+
+
+
+>>>>>>> b714464edd93ff01282798143cc34c210bb49cbf
