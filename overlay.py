@@ -1,6 +1,13 @@
 import sys
+import time
 import pygame
 from settings import *
+
+from board import Board
+from toggle import Toggle
+from inventory import EquipmentInventory, SpeciesDictionary
+from intromenu import Intromenu
+from popup import PopUp
 
 class Overlay:
 	def __init__(self,player):
@@ -8,20 +15,96 @@ class Overlay:
 		# general setup
 		self.display_surface = pygame.display.get_surface()
 		self.player = player
+		self.start_time = 0
 
 		# imports 
 		overlay_path = '../graphics/overlay/'
 		self.tools_surf = {tool: pygame.image.load(f'{overlay_path}{tool}.png').convert_alpha() for tool in TOOLS}
-		#self.seeds_surf = {seed: pygame.image.load(f'{overlay_path}{seed}.png').convert_alpha() for seed in player.seeds}
 		self.font_big = pygame.font.Font('../font/LycheeSoda.ttf', 70)
 		self.font_mid = pygame.font.Font('../font/LycheeSoda.ttf', 50)
 		self.font_small = pygame.font.Font('../font/LycheeSoda.ttf', 30)
 		self.font_smaller = pygame.font.Font('../font/LycheeSoda.ttf', 15)
 
-		self.display_keys_shortcuts = True
+		#instances
+		self.board = Board(self.player)
+		self.toggle_bio_species = Toggle()
+		self.tools_inventory = EquipmentInventory(self.player.available_tools, self.player.possessed_tools)
+		self.dictionary_species = SpeciesDictionary(self.player.wiki)
 
-	def display(self, xp):
-		lvl = self.player.get_player_level(xp)
+		#instances of popups
+		self.popup_name = ''
+
+		#STATUS
+		self.displaying_keys_shortcuts = True
+		self.displaying_toggle = False
+		self.colliding_bio = False
+		self.displaying_lvl_xp = True
+		self.displaying_popup_new_species = False
+		self.displaying_warning = False
+		self.displaying_message_bio = False
+		self.displaying_getting_dark = False
+
+		self.displaying_board = False
+		self.displaying_tools_inventory = False
+		self.displaying_species_dict = False
+
+	def run(self):
+		self.display_shortcuts()
+
+		if self.displaying_getting_dark and not self.player.overlay.displaying_popup_new_species:
+			self.display_getting_dark()
+
+		if self.player.overlay.displaying_warning :
+			self.display_warning()
+
+		if self.player.overlay.displaying_message_bio and not self.player.overlay.displaying_toggle and not self.displaying_getting_dark:
+			self.display_message_bio()
+
+		if self.player.overlay.displaying_popup_new_species and not self.player.overlay.displaying_message_bio:
+			self.display_popup_new_species(self.player.overlay.popup_name+'  ')
+
+		if pygame.key.get_pressed()[pygame.K_RETURN] and self.player.overlay.colliding_bio :
+			self.player.overlay.displaying_toggle = True
+
+		if pygame.key.get_pressed()[pygame.K_ESCAPE] and self.displaying_toggle:
+			self.player.overlay.displaying_toggle = False
+
+		if self.displaying_lvl_xp and not self.player.overlay.displaying_board:
+			self.display_lvl_xp_tool_icon()
+
+		if self.player.overlay.displaying_tools_inventory:
+			self.player.overlay.displaying_keys_shortcuts = False
+			self.display_tools_inventory()
+
+		if self.player.overlay.displaying_tools_inventory and pygame.key.get_pressed()[pygame.K_q]:
+			self.tools_inventory.in_inventory_menu = False
+			self.player.overlay.displaying_tools_inventory = False
+
+		if self.player.overlay.displaying_species_dict:
+			self.player.overlay.displaying_keys_shortcuts = False
+			self.display_species_dict()
+
+		if self.player.overlay.displaying_species_dict and pygame.key.get_pressed()[pygame.K_q]:
+			self.dictionary_species.in_inventory_menu = False
+			self.player.overlay.displaying_species_dict= False
+
+		if self.player.overlay.displaying_toggle and not(self.player.overlay.displaying_warning):
+			self.display_toggle()
+
+		if self.player.overlay.displaying_board and not(self.player.overlay.displaying_tools_inventory or self.player.overlay.displaying_species_dict):
+			self.player.overlay.displaying_keys_shortcuts = False
+			self.board.run(self.player.available_tools, self.player.possessed_tools)
+
+	def display_tools_inventory(self):		
+		self.tools_inventory.in_inventory_menu = True
+		self.tools_inventory.display_inventory_menu(self.player.possessed_tools.get_size())
+
+	def display_species_dict(self):		
+		self.dictionary_species.in_inventory_menu = True
+		self.dictionary_species.display_inventory_menu(self.player.known_species, self.player.well_known_species, self.player.player_xp)
+
+	def display_lvl_xp_tool_icon(self):
+		lvl = self.player.get_player_level(self.player.player_xp)
 
 		# tool
 		if not self.player.possessed_tools.is_empty():
@@ -30,7 +113,7 @@ class Overlay:
 			self.display_surface.blit(tool_surf,tool_rect)
 
 		#xp and level
-		xp_txt_surf = self.font_small.render('  '+str(xp)+' XP  ', False, 'White')
+		xp_txt_surf = self.font_small.render('  '+str(self.player.player_xp)+' XP  ', False, 'White')
 		xp_txt_rect = xp_txt_surf.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT))
 		lvl_txt_surf = self.font_small.render('  Level '+str(lvl)+'  ', False, 'White')
 		lvl_txt_rect = lvl_txt_surf.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT-30))
@@ -43,18 +126,13 @@ class Overlay:
 		else:
 			color = 'cornflowerblue'
 
-		background_rect = pygame.Rect(lvl_txt_rect.x, lvl_txt_rect.y, xp_txt_rect.width+40, xp_txt_rect.height + lvl_txt_rect.height)
-		pygame.draw.rect(self.display_surface, color,background_rect, border_top_left_radius = 5)
-		self.display_surface.blit(xp_txt_surf, xp_txt_rect)
-		self.display_surface.blit(lvl_txt_surf, lvl_txt_rect)
+		if self.displaying_lvl_xp:
+			background_rect = pygame.Rect(lvl_txt_rect.x, lvl_txt_rect.y, xp_txt_rect.width+40, xp_txt_rect.height + lvl_txt_rect.height)
+			pygame.draw.rect(self.display_surface, color,background_rect, border_top_left_radius = 5)
+			self.display_surface.blit(xp_txt_surf, xp_txt_rect)
+			self.display_surface.blit(lvl_txt_surf, lvl_txt_rect)
 
-	def display_interaction_options(self):
-		pygame.draw.rect(self.display_surface, 'White', pygame.Rect(150, 640, 1240, 640))
-		possible_interactions_surf = self.font_small.render('Interact >', False, 'Black')
-		possible_interactions_rect = possible_interactions_surf.get_rect(topleft = (160, 685))
-		self.display_surface.blit(possible_interactions_surf, possible_interactions_rect)
-	
-	def display_keys(self):
+	def display_shortcuts(self):
 		reveal_title_surf = self.font_smaller.render('Show key shortcuts >', False,'White')
 		reveal_title_rect = reveal_title_surf.get_rect(topright = (1270,5))
 		
@@ -74,7 +152,7 @@ class Overlay:
 		mouse_pos = pygame.mouse.get_pos()
 
 		#display
-		if not self.display_keys_shortcuts:
+		if not self.displaying_keys_shortcuts:
 			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(1130, 0, 150, 28), border_bottom_left_radius=10)
 			#hover animation
 			mouse_pos = pygame.mouse.get_pos()
@@ -83,7 +161,7 @@ class Overlay:
 
 			self.display_surface.blit(reveal_title_surf, reveal_title_rect)			
 
-		if self.display_keys_shortcuts:
+		if self.displaying_keys_shortcuts:
 			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(960, 0, 480, 140), border_bottom_left_radius=10)
 			#hover animation
 			if exit_cross_rect.collidepoint(mouse_pos):
@@ -106,7 +184,90 @@ class Overlay:
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				x,y = event.pos
 				if exit_cross_rect.collidepoint(x,y):
-					self.display_keys_shortcuts = False
+					self.displaying_keys_shortcuts = False
 				
 				if reveal_title_rect.collidepoint(x,y): #isn't perfect but it works
-					self.display_keys_shortcuts = True
+					self.displaying_keys_shortcuts = True
+
+	def display_toggle(self):		
+		if self.player.overlay.colliding_bio:
+			self.toggle_bio_species.in_menu = True
+			self.toggle_bio_species.display_menu(self.player.known_species, self.player.well_known_species)
+
+			if len(pygame.sprite.spritecollide(self.player, self.player.interaction, False)) == 0:
+				self.player.toggle_bio_conditions = False
+
+			elif (not 'Biologist' in pygame.sprite.spritecollide(self.player,self.player.interaction,False)[0].name):
+				self.player.toggle_bio_conditions = False
+
+	def display_popup_new_species(self, species):
+		popup = PopUp(species, first_encounter = True)
+		if time.time() -self.player.overlay.start_time <= 3:
+			popup.display()
+		else:
+			popup.first_encounter = False
+			self.player.overlay.displaying_popup_new_species = False
+		
+	def display_warning(self):
+		if time.time() - self.player.overlay.start_time <= 1.5:
+			warning1_txt_surf = self.font_small.render(' Are you sure you want to return to the homescreen ? ', False, 'Black')
+			warning1_txt_rect = warning1_txt_surf.get_rect(center = (640, 300))
+
+			#button
+			yes_surf = self.font_small.render('  yes I am sure  ', False, 'White')
+			yes_rect = yes_surf.get_rect(center = (640, 370))                
+
+			#hover animation more info button
+			mouse_pos = pygame.mouse.get_pos()
+
+			#display
+			pygame.draw.rect(self.display_surface, 'White', pygame.Rect(200, 200, 880, 300), border_radius = 5)
+			pygame.draw.rect(self.display_surface, 'Black', pygame.Rect(210, 210, 860, 280), width=5,  border_radius = 5) #border
+			pygame.draw.rect(self.display_surface, 'Black', yes_rect, border_radius=10)
+			
+			#hover animation more info button
+			mouse_pos = pygame.mouse.get_pos()
+			if yes_rect.collidepoint(mouse_pos):
+				pygame.draw.rect(self.display_surface, 'chartreuse3', yes_rect, border_radius=10)
+				yes_surf = self.font_small.render('  yes I am sure  ', False, 'White')
+				yes_rect = yes_surf.get_rect(center = (640, 370))
+				
+			self.display_surface.blit(warning1_txt_surf, warning1_txt_rect)
+			self.display_surface.blit(yes_surf, yes_rect)
+
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					sys.exit()
+
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					if yes_rect.collidepoint(mouse_pos):
+						self.player.overlay.displaying_warning = False
+						intromenu = Intromenu()
+						intromenu.run()
+		else:
+			self.player.overlay.displaying_warning = False
+
+	def display_message_bio(self):
+		if time.time() - self.player.overlay.start_time <= 5:
+			#text overlay
+			strg_list = ['  Congratulations! You have found a wild biologist !  ',
+						'  You can ask them questions about a species you have discovered ',
+						'  To do so press the ENTER key  ']
+
+			txt = self.font_small.render(strg_list[1], False, 'Black').get_rect(midtop = (640, 30))
+			box = pygame.Rect(txt.x, 0, txt.width, 90)
+			pygame.draw.rect(self.display_surface, 'White', box, border_bottom_left_radius=10, border_bottom_right_radius=10)
+
+			for strg in strg_list:
+				txt_surf = self.font_small.render(strg, False, 'Black')
+				txt_rect = txt_surf.get_rect(midtop = (640, 0+30*strg_list.index(strg)))
+
+				#display
+				self.display_surface.blit(txt_surf, txt_rect)
+
+	def display_getting_dark(self):
+		text_surf = self.font_small.render('  it is getting dark, you should go to the board  ', False, 'Black')
+		text_rect = text_surf.get_rect(center = (640, 15))
+		pygame.draw.rect(self.display_surface, 'Grey', text_rect, border_bottom_left_radius=10, border_bottom_right_radius=10)
+		self.display_surface.blit(text_surf, text_rect)

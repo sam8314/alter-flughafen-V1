@@ -1,10 +1,7 @@
 import pygame
 from settings import *
-from timer import Timer
-from inventory import Stack2
-import sys 
 
-class Menu2:
+class Toggle:
     def __init__(self):
         #general setup
         self.display_surface = pygame.display.get_surface()
@@ -92,9 +89,9 @@ class Menu2:
         for species in split_copy[current_slide]:
             height_i = 300 + i*(self.padding + 30)
             if well_known_species.is_here(species):
-                txt_surf = self.font_smaller.render(self.format_species_name_string(species), False, 'chartreuse3')
+                txt_surf = self.font_smaller.render(FORMAT(species), False, 'chartreuse3')
             else:
-                txt_surf = self.font_smaller.render(self.format_species_name_string(species), False, 'Black')
+                txt_surf = self.font_smaller.render(FORMAT(species), False, 'Black')
             txt_rect = txt_surf.get_rect(center = pygame.Rect(440, height_i, self.width, 30).center)
 
             #background box
@@ -150,14 +147,5 @@ class Menu2:
 
         pygame.draw.rect(self.display_surface, 'White', slide_nb_rect, border_radius=3)
         self.display_surface.blit(slide_nb_surf, slide_nb_rect)
-
-    def format_species_name_string(self, strg):
-        res =''
-        for char in strg:
-            if char == '_':
-                res+=' '
-            else:
-                res+= char
-        return(res)
 
 

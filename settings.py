@@ -9,6 +9,37 @@ MIDGREEN =(43.1, 58.8, 48.6)
 DEEPGREEN =(37.3, 47.8, 47.5)
 LIGHTGREEN =(76.1, 87.8, 60.4)
 
+def FORMAT(strg):
+	#fix pair OF red/purple mushroom
+	res =''
+	for char in strg:
+		if char == '_':
+			res+=' '
+		else:
+			res+= char
+	return(res)
+
+SPECIES = ['small_tree',
+			'large_tree',
+			'bush',
+			'sunflower',
+			'pink_flower',
+			'blue_flower',
+			'single_purple_mushroom',
+			'pair_purple_mushroom',
+			'single_red_mushroom',
+			'pair_red_mushroom']
+
+SPECIES_TILES = ['Small', 
+				'Large', 
+				'Bush', 
+				'Sunflower', 
+				'Pink_flower', 
+				'Blue_flower', 
+				'One_purple_mushroom',
+				'Two_purple_mushrooms',
+				'One_red_mushroom',
+				'Two_red_mushrooms']
 
 # overlay positions 
 OVERLAY_POSITIONS = {

@@ -1,12 +1,11 @@
 import pygame
 from settings import *
+import time
 from support import *
 from timer import Timer
-from inventory import DisplayInventory, EquipmentInventory, Stack2
-from action import Action
-from menu2 import Menu2
+from inventory import Stack
 from wiki import Wiki
-from board import Board
+from overlay import Overlay
 
 class Player(pygame.sprite.Sprite):
 	def __init__(self, pos, group, collision_sprites, tree_sprites, interaction, soil_layer):
@@ -14,19 +13,20 @@ class Player(pygame.sprite.Sprite):
 		self.player_xp = 0
 		self.player_level = self.get_player_level(self.player_xp)
 		
-		self.known_species = Stack2()
-		self.well_known_species = Stack2()
+		self.known_species = Stack()
+		self.well_known_species = Stack()
 
-		self.available_tools = Stack2()
-		self.possessed_tools = Stack2()
+		self.available_tools = Stack()
+		self.possessed_tools = Stack()		
+	
+		# tools
+		self.tool_index = 0
+		self.selected_tool = 'glass'
 		
-		self.toggle_bio_species = Menu2()
-		self.toggle_bio_conditions = False
 		self.wiki = Wiki()
-
-		self.dictionary_species = DisplayInventory(self.wiki)
-		self.tools_inventory = EquipmentInventory(self.available_tools, self.possessed_tools)
-		self.board = Board(self)
+		self.toggle_bio_conditions = False
+		
+		self.overlay = Overlay(self)
 
 		self.import_assets()
 		self.status = 'right_idle'
@@ -46,46 +46,11 @@ class Player(pygame.sprite.Sprite):
 		self.hitbox = self.rect.copy().inflate((-126,-70))
 		self.collision_sprites = collision_sprites
 
-		#actions
-		self.encountered_board = Action()
-		self.encountered_biologist = Action()
-		self.encountered_new_small = Action() #small tree
-		self.encountered_new_large = Action() #large tree
-		self.encountered_new_bush = Action()
-		self.encountered_new_sunflower = Action()
-		self.encountered_new_pink_flower = Action()
-		self.encountered_new_blue_flower = Action()
-		self.encountered_new_single_purple_mushroom = Action()
-		self.encountered_new_pair_purple_mushrooms = Action()
-		self.encountered_new_single_red_mushroom = Action()
-		self.encountered_new_pair_red_mushrooms = Action()
-
-		#homemenu overlay
-		self.homemenu = Action()
-
 		# timers 
 		self.timers = {
-			'warning homescreen' : Timer(4000, activefunc=self.homemenu.display_warning),
 			'tool use': Timer(350,func = self.use_tool),
-			'tool switch': Timer(200),
-			'popup message board': Timer(1300,activefunc= self.encountered_board.display_board_message),
-			'popup message new small tree': Timer(1200, activefunc = self.encountered_new_small.display_small_tree),
-			'popup message new large tree': Timer(1200, activefunc = self.encountered_new_large.display_large_tree),
-			'popup message new bush': Timer(1200, activefunc = self.encountered_new_bush.display_bush),
-			'popup message new sunflower': Timer(1200, activefunc = self.encountered_new_sunflower.display_sunflower),
-			'popup message new pink flower': Timer(1200, activefunc = self.encountered_new_pink_flower.display_pink_flower),
-			'popup message new blue flower': Timer(1200, activefunc = self.encountered_new_blue_flower.display_blue_flower),
-			'popup message new single purple mushroom': Timer(1200, activefunc = self.encountered_new_single_purple_mushroom.display_one_purple_mushroom),
-			'popup message new pair purple mushrooms': Timer(1200, activefunc = self.encountered_new_pair_purple_mushrooms.display_two_purple_mushrooms),
-			'popup message new single red mushroom': Timer(1200, activefunc = self.encountered_new_single_red_mushroom.display_one_red_mushroom),
-			'popup message new pair red mushrooms': Timer(1200, activefunc = self.encountered_new_pair_red_mushrooms.display_two_red_mushrooms),
-			'popup message biologist': Timer(1300, activefunc=self.encountered_biologist.display_message_bio)
+			'tool switch': Timer(200)
 		}
-
-		# tools 
-		if not self.possessed_tools.is_empty():
-			self.tool_index = 0
-			self.selected_tool = self.possessed_tools.return_element(self.tool_index)
 
 		# interaction
 		self.tree_sprites = tree_sprites
@@ -98,22 +63,16 @@ class Player(pygame.sprite.Sprite):
 		self.watering.set_volume(0.2)
 
 	def use_tool(self):
-		if self.selected_tool == 'glass':
-			print('using glass')
+		if not self.possessed_tools.is_empty():
+			if self.selected_tool == 'glass':
+				print('using glass')
 
-		if self.selected_tool == 'binoculars':
-			print('using binos')
+			if self.selected_tool == 'binoculars':
+				print('using binos')
 
 	def get_target_pos(self):
 
 		self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
-
-	def use_seed(self):
-		'''
-		if self.seed_inventory[self.selected_seed] > 0:
-			self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
-			self.seed_inventory[self.selected_seed] -= 1
-		'''
 
 	def import_assets(self):
 		self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -158,17 +117,16 @@ class Player(pygame.sprite.Sprite):
 
 			#homemenu
 			if pygame.key.get_pressed()[pygame.K_m]:
-				self.timers['warning homescreen'].activate()
+				self.overlay.start_time = time.time()
+				self.overlay.displaying_warning = True	
 
 			#species inventory		
 			if pygame.key.get_pressed()[pygame.K_i]:
-				self.dictionary_species.in_inventory_menu = True
-				self.dictionary_species.display_inventory_menu(self.known_species, self.well_known_species, self.player_xp)
+				self.overlay.displaying_species_dict = True
 
 			#tools inventory
 			if pygame.key.get_pressed()[pygame.K_t]:
-				self.tools_inventory.in_inventory_menu = True
-				self.tools_inventory.display_inventory_menu(self.possessed_tools.get_size())
+				self.overlay.displaying_tools_inventory = True
 
 			# tool use
 			if keys[pygame.K_SPACE]:
@@ -177,34 +135,12 @@ class Player(pygame.sprite.Sprite):
 				self.frame_index = 0
 
 			# change tool
-			if keys[pygame.K_q] and not self.timers['tool switch'].active:
+			if keys[pygame.K_q] and not self.timers['tool switch'].active and not self.possessed_tools.is_empty():
 				self.timers['tool switch'].activate()
 				self.tool_index += 1
 				self.tool_index = self.tool_index if self.tool_index < self.possessed_tools.get_size() else 0
 				self.selected_tool = self.possessed_tools.return_element(self.tool_index)
-
-			if keys[pygame.K_RETURN]:
-				collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction,False)
-				if collided_interaction_sprite:
-					if collided_interaction_sprite[0].name == 'Biologist':
-						self.toggle_bio_conditions = True
-					elif collided_interaction_sprite[0].name == 'Board':
-						self.board.run()
-
-			if pygame.key.get_pressed()[pygame.K_ESCAPE] and self.toggle_bio_conditions:
-				self.toggle_bio_conditions = False
 	
-	def display_toggle_bio_species(self):		
-		if self.toggle_bio_conditions:
-			self.toggle_bio_species.in_menu = True
-			self.toggle_bio_species.display_menu(self.known_species, self.well_known_species)
-
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) == 0:
-				self.toggle_bio_conditions = False
-
-			elif (not 'Biologist' in pygame.sprite.spritecollide(self,self.interaction,False)[0].name):
-				self.toggle_bio_conditions = False
-
 	def get_status(self):		
 		# idle
 		if self.direction.magnitude() == 0:
@@ -218,6 +154,19 @@ class Player(pygame.sprite.Sprite):
 	def update_timers(self):
 		for timer in self.timers.values():
 			timer.update()
+
+	def update_stacks(self):
+		if self.player_level == 1:
+			self.available_tools.push('glass')
+		elif self.player_level == 2:
+			self.available_tools.push('binoculars')
+
+	def update_non_collisions(self):
+		if not (len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Board'):
+			self.overlay.displaying_board = False
+
+		if not (len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Biologist'):
+			self.overlay.colliding_bio = False	
 
 	def collision(self, direction):
 		for sprite in self.collision_sprites.sprites():
@@ -240,85 +189,23 @@ class Player(pygame.sprite.Sprite):
 						self.pos.y = self.hitbox.centery
 
 			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Board':
-				#self.timers['popup message board'].activate()
-				self.board.run()
+				self.overlay.displaying_board = True
 
 			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Biologist':
-				if not self.toggle_bio_species.in_menu:
-					self.timers['popup message biologist'].activate()	
+				self.overlay.colliding_bio = True				
+				self.overlay.start_time = time.time()
+				self.overlay.displaying_message_bio = True
 
-			#trees
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Small':
-				if not (self.known_species.is_here('small_tree')):
-					self.player_xp +=10
-					self.known_species.push('small_tree')
-					self.timers['popup message new small tree'].activate()
-					self.encountered_new_small.first_encounter = False
-
-			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Large':				
-				if not (self.known_species.is_here('large_tree')):
-					self.player_xp +=10
-					self.known_species.push('large_tree')
-					self.timers['popup message new large tree'].activate()
-					self.encountered_new_large.first_encounter = False
-
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Bush':				
-				if not (self.known_species.is_here('bush')):
-					self.player_xp +=10
-					self.known_species.push('bush')
-					self.timers['popup message new bush'].activate()
-					self.encountered_new_bush.first_encounter = False
-			
 			#species
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Sunflower':
-				if not (self.known_species.is_here('sunflower')):
-					self.player_xp +=10
-					self.known_species.push('sunflower')
-					self.timers['popup message new sunflower'].activate()
-					self.encountered_new_sunflower.first_encounter = False
-				
-			
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Pink_flower':
-				if not (self.known_species.is_here('pink_flower')):
-					self.player_xp +=10
-					self.known_species.push('pink_flower')
-					self.timers['popup message new pink flower'].activate()
-					self.encountered_new_pink_flower.first_encounter = False
-
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Blue_flower':
-				if not (self.known_species.is_here('blue_flower')):
-					self.player_xp +=10
-					self.known_species.push('blue_flower')
-					self.timers['popup message new blue flower'].activate()
-					self.encountered_new_blue_flower.first_encounter = False
-
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'One_purple_mushroom':
-				if not (self.known_species.is_here('single_purple_mushroom')):
-					self.player_xp +=10
-					self.known_species.push('single_purple_mushroom')
-					self.timers['popup message new single purple mushroom'].activate()
-					self.encountered_new_single_purple_mushroom.first_encounter = False
-			
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Two_purple_mushrooms':
-				if not (self.known_species.is_here('pair_purple_mushrooms')):
-					self.player_xp +=10
-					self.known_species.push('pair_purple_mushrooms')
-					self.timers['popup message new pair purple mushrooms'].activate()
-					self.encountered_new_pair_purple_mushrooms.first_encounter = False
-			
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'One_red_mushroom':
-				if not (self.known_species.is_here('single_red_mushroom')):
-					self.player_xp +=10
-					self.known_species.push('single_red_mushroom')
-					self.timers['popup message new single red mushroom'].activate()
-					self.encountered_new_single_red_mushroom.first_encounter = False
-			
-			if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == 'Two_red_mushrooms':
-				if not (self.known_species.is_here('pair_red_mushrooms')):
-					self.player_xp +=10
-					self.known_species.push('pair_red_mushrooms')
-					self.timers['popup message new pair red mushrooms'].activate()
-					self.encountered_new_pair_purple_mushrooms.first_encounter = False		
+			for tile in SPECIES_TILES:
+				if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == tile:
+					species = SPECIES[SPECIES_TILES.index(tile)]
+					if not (self.known_species.is_here(species)):
+						self.player_xp +=10
+						self.known_species.push(species)
+						self.overlay.popup_name = species
+						self.overlay.start_time = time.time()
+						self.overlay.displaying_popup_new_species = True		
 					
 	def move(self,dt):
 
@@ -343,8 +230,8 @@ class Player(pygame.sprite.Sprite):
 		self.input()
 		self.get_status()
 		self.update_timers()
+		self.update_stacks()
 		self.get_target_pos()
-		self.display_toggle_bio_species()
 
 		self.move(dt)
 		self.animate(dt)

@@ -9,7 +9,7 @@ from transition import Transition
 from soil import SoilLayer
 from sky import Rain, Sky
 from random import randint
-from menu2 import Menu2
+from toggle import Toggle
 
 class Level:
 	def __init__(self):
@@ -32,15 +32,7 @@ class Level:
 		self.rain = Rain(self.all_sprites)
 		self.raining = randint(0,10) > 7
 		self.soil_layer.raining = self.raining
-		self.sky = Sky()
-
-		# shop
-		#self.menu = Menu(self.player, self.toggle_shop)
-		#self.shop_active = False
-
-		#biologist species menu
-		#self.bio_species = Menu2(self.player)
-
+		self.sky = Sky(self.overlay)
 
 		# music
 		self.success = pygame.mixer.Sound('../audio/success.wav')
@@ -177,11 +169,13 @@ class Level:
 		
 		# updates
 		self.all_sprites.update(dt)
+		self.player.update_non_collisions()
 		self.plant_collision()
 
+		#overlay
+		self.overlay.run()
+
 		# weather
-		self.overlay.display(self.player.player_xp)
-		self.overlay.display_keys()
 		if self.raining:
 			self.rain.update()
 		self.sky.display(dt)
