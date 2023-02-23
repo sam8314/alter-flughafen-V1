@@ -1,6 +1,7 @@
 import pygame 
 from settings import *
 from player import Player
+from animal import Animal
 from overlay import Overlay
 from sprites import Generic, Water, Species, Tree, Interaction, Particle
 from pytmx.util_pygame import load_pygame
@@ -64,7 +65,7 @@ class Level:
 		for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
 			Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
 
-		# Player 
+		# Player and animals
 		for obj in tmx_data.get_layer_by_name('Player'):
 			if obj.name == 'Start':
 				self.player = Player(
@@ -73,22 +74,32 @@ class Level:
 					collision_sprites = self.collision_sprites,
 					tree_sprites = self.tree_sprites,
 					interaction = self.interaction_sprites,
-					soil_layer = self.soil_layer
-					)
-
-			if obj.name == '':
-				pass
+					soil_layer = self.soil_layer)
 
 			for tile in SPECIES_TILES:
 				if obj.name == tile:
 					Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-					
+
+			if obj.name =='Frog':
+				self.frog = Animal(
+					name = 'frog',
+					pos = (obj.x, obj.y),
+					groups = self.all_sprites,
+					player = self.player)
+
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+				self.frog_collision = Generic(self.frog.pos, pygame.Surface((21,16)), self.collision_sprites)
+
 
 		Generic(
 			pos = (0,0),
 			surf = pygame.image.load('../graphics/world/ground2.png').convert_alpha(),
 			groups = self.all_sprites,
 			z = LAYERS['ground'])
+
+	def update_animal_collision(self):
+		#Generic(self.frog.pos, pygame.Surface((21,16)), self.collision_sprites)
+		self.frog_collision.pos = self.frog.pos
 
 	def player_add(self,item):
 		self.player.item_inventory[item] += 1
@@ -123,6 +134,7 @@ class Level:
 		self.all_sprites.update(dt)
 		self.player.update_non_collisions()
 		self.plant_collision()
+		self.update_animal_collision() #WORKS BUT LAGS GAME
 
 		#overlay
 		self.overlay.run()

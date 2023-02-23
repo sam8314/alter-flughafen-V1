@@ -39,7 +39,7 @@ class Player(pygame.sprite.Sprite):
 		# movement attributes
 		self.direction = pygame.math.Vector2()
 		self.pos = pygame.math.Vector2(self.rect.center)
-		self.speed = 200		
+		self.speed = 150		
 
 		# collision
 		self.hitbox = self.rect.copy().inflate((-126,-70))
@@ -61,6 +61,11 @@ class Player(pygame.sprite.Sprite):
 		self.watering = pygame.mixer.Sound('../audio/water.mp3')
 		self.watering.set_volume(0.2)
 
+		#levelup
+		self.has_reached_lvl1 = False
+		self.has_reached_lvl2 = False 
+		self.has_reached_lvl3 = False
+
 	def use_tool(self):
 		if not self.possessed_tools.is_empty():
 			if self.selected_tool == 'glass':
@@ -70,7 +75,6 @@ class Player(pygame.sprite.Sprite):
 				print('using binos')
 
 	def get_target_pos(self):
-
 		self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
 
 	def import_assets(self):
@@ -101,15 +105,19 @@ class Player(pygame.sprite.Sprite):
 				self.status = 'up'
 				if keys[pygame.K_LCTRL]:
 					self.speed = 300
+				elif keys[pygame.K_RCTRL]:
+					self.speed = 40
 				else:
-					self.speed = 170
+					self.speed = 150
 			elif keys[pygame.K_DOWN]:
 				self.direction.y = 1
 				self.status = 'down'
 				if keys[pygame.K_LCTRL]:
 					self.speed = 300
+				elif keys[pygame.K_RCTRL]:
+					self.speed = 40
 				else:
-					self.speed = 170
+					self.speed = 150
 			else:
 				self.direction.y = 0
 
@@ -118,15 +126,19 @@ class Player(pygame.sprite.Sprite):
 				self.status = 'right'
 				if keys[pygame.K_LCTRL]:
 					self.speed = 300
+				elif keys[pygame.K_RCTRL]:
+					self.speed = 40
 				else:
-					self.speed = 170
+					self.speed = 150
 			elif keys[pygame.K_LEFT]:
 				self.direction.x = -1
 				self.status = 'left'
 				if keys[pygame.K_LCTRL]:
 					self.speed = 300
+				elif keys[pygame.K_RCTRL]:
+					self.speed = 40
 				else:
-					self.speed = 170
+					self.speed = 150
 			else:
 				self.direction.x = 0
 
@@ -205,6 +217,7 @@ class Player(pygame.sprite.Sprite):
 
 			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Board':
 				self.overlay.displaying_board = True
+				print('here')
 
 			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Biologist':
 				self.overlay.colliding_bio = True				
@@ -258,4 +271,6 @@ class Player(pygame.sprite.Sprite):
 			return 1
 		else:
 			return 2
+
+		
 

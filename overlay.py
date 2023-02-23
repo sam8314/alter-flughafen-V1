@@ -137,7 +137,7 @@ class Overlay:
 		reveal_title_rect = reveal_title_surf.get_rect(topright = (1270,5))
 		
 		box_title_surf = self.font_small.render('Keys shortcuts:', False, 'White')
-		box_title_rect = box_title_surf.get_rect(topleft = (980, 10))
+		box_title_rect = box_title_surf.get_rect(topleft = (980, 8))
 
 		exit_cross_surf = self.font_small.render('[x]', False, 'White')
 		exit_cross_rect = exit_cross_surf.get_rect(topright = (1270,10))
@@ -147,7 +147,8 @@ class Overlay:
 					'Press SPACE to use your active tool',
 					'Press q to change your active tool', 
 					'Press m to return to the homemenu',
-					'Press Left Control to run']
+					'Press Left Control to run',
+					'Press Right Control to walk slowly']
 
 		#hover animation
 		mouse_pos = pygame.mouse.get_pos()
@@ -163,7 +164,7 @@ class Overlay:
 			self.display_surface.blit(reveal_title_surf, reveal_title_rect)			
 
 		if self.displaying_keys_shortcuts:
-			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(960, 0, 480, 150), border_bottom_left_radius=10)
+			pygame.draw.rect(self.display_surface, 'Grey', pygame.Rect(960, 0, 480, 170), border_bottom_left_radius=10)
 			#hover animation
 			if exit_cross_rect.collidepoint(mouse_pos):
 				exit_cross_surf = self.font_small.render('[x]', False, 'Black')
@@ -171,7 +172,7 @@ class Overlay:
 			self.display_surface.blit(box_title_surf, box_title_rect)
 			self.display_surface.blit(exit_cross_surf, exit_cross_rect)
 			for i in range(0,len(keys_strg)):
-				height = 27 + (i+1)*17
+				height = 24 + (i+1)*17
 				key_surf = self.font_smaller.render(keys_strg[i], False, 'White')
 				key_rect = key_surf.get_rect(topleft=(980, height))
 				self.display_surface.blit(key_surf, key_rect)
