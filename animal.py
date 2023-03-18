@@ -4,11 +4,10 @@ from support import *
 from timer import Timer
 
 class Animal(pygame.sprite.Sprite):
-    def __init__(self, name, pos, groups, player):
+    def __init__(self, name, pos, groups, player, animal_collision_sprites):
 
         #general setup
         super().__init__(groups)
-        self.collision_sprites = pygame.sprite.Group()
         self.sprite_type = 'animal'
         self.frame_index = 0
         self.animation_speed = 0.15
@@ -28,9 +27,9 @@ class Animal(pygame.sprite.Sprite):
         self.pos = pygame.math.Vector2(self.rect.center)
         self.speed = 180
 
-        #collision 
-        #self.hitbox = self.rect.copy()
-        self.hitbox = self.rect.copy().inflate((-126,-70))
+        #collision
+        self.hitbox = self.rect.copy().inflate((0,20))
+        self.animal_collision_sprites = animal_collision_sprites
 
         #behaviour
         self.player = player
@@ -41,9 +40,10 @@ class Animal(pygame.sprite.Sprite):
         self.timers = {
             'running away': Timer(1000, func = self.reset, activefunc = self.run_away)
         }
+        self.soft_contact = False
 
     def collision(self, direction):
-        for sprite in self.collision_sprites.sprites():
+        for sprite in self.animal_collision_sprites.sprites():
             if hasattr(sprite, 'hitbox'):
                 if direction == 'horizontal':
                     if self.direction.x > 0: # moving right
@@ -91,6 +91,7 @@ class Animal(pygame.sprite.Sprite):
         self.frame_index += 4 * dt
         if self.frame_index >= len(self.animations[self.status]):
             self.frame_index = 0
+        
 
         self.image = self.animations[self.status][int(self.frame_index)]
 
@@ -98,11 +99,60 @@ class Animal(pygame.sprite.Sprite):
         if self.direction.magnitude() == 0:
             self.status = self.status.split('_')[0] + '_idle'
 
-    def behaviour(self, dt):
+    def opposite_status(self, status):
+        if status == 'up':
+            return 'down'
+        elif status == 'down':
+            return 'up'
+        elif status == 'left':
+            return 'right'
+        elif status == 'right':
+            return 'left'
+        elif status == 'right_idle':
+            return 'left_idle'
+        elif status == 'left_idle':
+            return 'right_idle'
+
+    def getting_closer(self, pos, player_pos, player_dir):
+        if (pos.x > player_pos.x and pos.y > player_pos.y and player_dir == [0.7071707,0.7071707]):
+            return True
+        elif (pos.x > player_pos.x and pos.y == player_pos.y and player_dir == [1,0]):
+            return True
+        elif (pos.x == player_pos.x and pos.y > player_pos.y and player_dir == [0,1]):
+            return True
+        elif (pos.x == player_pos.x and pos.y < player_pos.y and player_dir == [0,-1]):
+            return True
+        elif (pos.x < player_pos.x and pos.y < player_pos.y and player_dir == [-0.7071707,-0.7071707]):
+            return True
+        elif (pos.x < player_pos.x and pos.y == player_pos.y and player_dir == [-1,0]):
+            return True
+        elif (pos.x > player_pos.x and pos.y > player_pos.y and player_dir == [0,1]):
+            return True
+        elif (pos.x > player_pos.x and pos.y > player_pos.y and player_dir == [1,0]):
+            return True
+        elif (pos.x < player_pos.x and pos.y < player_pos.y and player_dir == [0,-1]):
+            return True
+        elif (pos.x < player_pos.x and pos.y < player_pos.y and player_dir == [-1,0]):
+            return True
+        else:
+            return False
+
+    def behaviour(self):
         if pygame.math.Vector2.distance_to(self.pos,self.player.pos) <=150 and self.player.speed > 40:
-            self.impact['direction'] = self.player.direction
-            self.impact['status'] = self.player.status        
-            self.timers['running away'].activate()
+            if self.getting_closer(self.pos, self.player.pos, self.player.direction):#player goes closer towards the animal
+                self.impact['direction'] = self.player.direction
+                self.impact['status'] = self.player.status        
+                self.timers['running away'].activate()
+            else: #player takes other direction
+                if not self.player.direction.length() == 0: #îf plaer is moving
+                    self.impact['direction'] = pygame.math.Vector2.reflect(self.player.direction,self.player.direction)
+                    self.impact['status'] = self.opposite_status(self.player.status)        
+                    self.timers['running away'].activate()
+        
+        if pygame.math.Vector2.distance_to(self.pos, self.player.pos) < 60 and self.player.speed <= 50:
+            self.soft_contact = True 
+        else:
+            self.soft_contact = False
 
     def run_away(self):
         self.direction = self.impact['direction']
@@ -119,7 +169,7 @@ class Animal(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.get_status()
-        self.behaviour(dt)
+        self.behaviour()
         self.move(dt)
         self.collision(self.direction)
         self.update_timers()

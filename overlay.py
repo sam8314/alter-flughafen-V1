@@ -16,6 +16,7 @@ class Overlay:
 		self.display_surface = pygame.display.get_surface()
 		self.player = player
 		self.start_time = 0
+		self.pos = 0
 
 		# imports 
 		overlay_path = '../graphics/overlay/'
@@ -48,14 +49,21 @@ class Overlay:
 		self.displaying_tools_inventory = False
 		self.displaying_species_dict = False
 
-	def run(self):
+	def run(self, dt):
 		self.display_shortcuts()
 
 		if self.displaying_getting_dark and not self.player.overlay.displaying_popup_new_species:
 			self.display_getting_dark()
 
-		if self.player.overlay.displaying_warning :
-			self.display_warning()
+		if self.player.overlay.displaying_warning and not pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			if self.pos < 260:
+				self.pos += 1000*dt	
+				self.warning_block(self.pos)
+			else:
+				self.warning_block(260)
+		
+		if self.player.overlay.displaying_warning and pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			self.close_warning_block(dt)
 
 		if self.player.overlay.displaying_message_bio and not self.player.overlay.displaying_toggle and not self.displaying_getting_dark:
 			self.display_message_bio()
@@ -209,46 +217,55 @@ class Overlay:
 		else:
 			popup.first_encounter = False
 			self.player.overlay.displaying_popup_new_species = False
-		
-	def display_warning(self):
-		if time.time() - self.player.overlay.start_time <= 1.5:
-			warning1_txt_surf = self.font_small.render(' Are you sure you want to return to the homescreen ? ', False, 'Black')
-			warning1_txt_rect = warning1_txt_surf.get_rect(center = (640, 300))
 
-			#button
-			yes_surf = self.font_small.render('  yes I am sure  ', False, 'White')
-			yes_rect = yes_surf.get_rect(center = (640, 370))                
+	def warning_block(self, x):
+		warning1_txt_surf = self.font_small.render('Are you sure you', False, 'Black')
+		warning2_txt_surf = self.font_small.render('want to return to', False, 'Black')
+		warning3_txt_surf = self.font_small.render('the homescreen ?', False, 'Black')
+		warning1_txt_rect = warning1_txt_surf.get_rect(center = (-145 + x, 300))
+		warning2_txt_rect = warning2_txt_surf.get_rect(center = (-145 + x, 350))
+		warning3_txt_rect = warning3_txt_surf.get_rect(center = (-145 + x, 400))
+		exit_surf = self.font_smaller.render('Press ESC to close', False, 'Black')
+		exit_rect = exit_surf.get_rect(center = (-145 + x, 550))
 
-			#hover animation more info button
-			mouse_pos = pygame.mouse.get_pos()
 
-			#display
-			pygame.draw.rect(self.display_surface, 'White', pygame.Rect(200, 200, 880, 300), border_radius = 5)
-			pygame.draw.rect(self.display_surface, 'Black', pygame.Rect(210, 210, 860, 280), width=5,  border_radius = 5) #border
-			pygame.draw.rect(self.display_surface, 'Black', yes_rect, border_radius=10)
-			
-			#hover animation more info button
-			mouse_pos = pygame.mouse.get_pos()
-			if yes_rect.collidepoint(mouse_pos):
-				pygame.draw.rect(self.display_surface, 'chartreuse3', yes_rect, border_radius=10)
-				yes_surf = self.font_small.render('  yes I am sure  ', False, 'White')
-				yes_rect = yes_surf.get_rect(center = (640, 370))
-				
-			self.display_surface.blit(warning1_txt_surf, warning1_txt_rect)
-			self.display_surface.blit(yes_surf, yes_rect)
+		#button
+		yes_surf = self.font_small.render('  yes  ', False, 'White')
+		yes_rect = yes_surf.get_rect(center = (-145 + x, 480))
+		mouse_pos = pygame.mouse.get_pos()
 
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					pygame.quit()
-					sys.exit()
+		#display
+		pygame.draw.rect(self.display_surface, 'White', pygame.Rect(-270 + x, 200, 260, 400), border_radius = 5)
+		pygame.draw.rect(self.display_surface, 'Black', pygame.Rect(-270 + x, 210, 250, 380), width =5, border_radius = 5)
+		pygame.draw.rect(self.display_surface, 'Black', yes_rect, border_radius = 10)
 
-				if event.type == pygame.MOUSEBUTTONDOWN:
-					if yes_rect.collidepoint(mouse_pos):
-						self.player.overlay.displaying_warning = False
-						intromenu = Intromenu()
-						intromenu.run()
-		else:
-			self.player.overlay.displaying_warning = False
+		if yes_rect.collidepoint(mouse_pos):
+			pygame.draw.rect(self.display_surface, 'chartreuse3', yes_rect, border_radius = 10)
+			yes_surf = self.font_small.render('  yes  ', False, 'White')
+			yes_rect = yes_surf.get_rect(center = (-145 + x, 480))
+
+		self.display_surface.blit(warning1_txt_surf, warning1_txt_rect)
+		self.display_surface.blit(warning2_txt_surf, warning2_txt_rect)
+		self.display_surface.blit(warning3_txt_surf, warning3_txt_rect)
+		self.display_surface.blit(yes_surf, yes_rect)
+		self.display_surface.blit(exit_surf, exit_rect)
+
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if yes_rect.collidepoint(mouse_pos):
+					self.player.overlay.displaying_warning = False
+					intromenu = Intromenu()
+					intromenu.run()
+
+	def close_warning_block(self, dt):
+		self.pos -= 800*dt
+		self.warning_block(self.pos)
+		if self.pos <= 20:
+			self.player.overlay.displaying_warning =  False
 
 	def display_message_bio(self):
 		if time.time() - self.player.overlay.start_time <= 5:

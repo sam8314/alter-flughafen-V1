@@ -23,7 +23,10 @@ class Level:
 		self.tree_sprites = pygame.sprite.Group()
 		self.interaction_sprites = pygame.sprite.Group()
 
-		self.soil_layer = SoilLayer(self.all_sprites, self.collision_sprites)
+		#animals sprite groups
+		self.animal_collision_sprites = pygame.sprite.Group()
+
+		self.soil_layer = SoilLayer(self.all_sprites, self.collision_sprites, self.animal_collision_sprites)
 		self.setup()
 		self.overlay = Overlay(self.player)
 		self.transition = Transition(self.reset, self.player)
@@ -45,7 +48,7 @@ class Level:
 		tmx_data = load_pygame('../data/map3.tmx') 
 		# Fence
 		for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
-			Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
+			Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites, self.animal_collision_sprites])
 
 		# water 
 		water_frames = import_folder('../graphics/water')
@@ -57,13 +60,13 @@ class Level:
 			Tree(
 				pos = (obj.x, obj.y), 
 				surf = obj.image, 
-				groups = [self.all_sprites, self.collision_sprites, self.tree_sprites], 
+				groups = [self.all_sprites, self.collision_sprites, self.animal_collision_sprites, self.tree_sprites], 
 				name = obj.name,
 				player_add = self.player_add)
 
 		# collision tiles
 		for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
-			Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
+			Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), groups = [self.collision_sprites, self.animal_collision_sprites])
 
 		# Player and animals
 		for obj in tmx_data.get_layer_by_name('Player'):
@@ -84,11 +87,12 @@ class Level:
 				self.frog = Animal(
 					name = 'frog',
 					pos = (obj.x, obj.y),
-					groups = self.all_sprites,
-					player = self.player)
-
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+					groups = [self.all_sprites, self.collision_sprites],
+					player = self.player,
+					animal_collision_sprites = self.animal_collision_sprites)
 				self.frog_collision = Generic(self.frog.pos, pygame.Surface((21,16)), self.collision_sprites)
+
+			Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
 
 
 		Generic(
@@ -116,28 +120,21 @@ class Level:
 		# sky
 		self.sky.start_color = [255,255,255]
 
-	def plant_collision(self):
-		if self.soil_layer.plant_sprites:
-			for plant in self.soil_layer.plant_sprites.sprites():
-				if plant.harvestable and plant.rect.colliderect(self.player.hitbox):
-					self.player_add(plant.plant_type)
-					plant.kill()
-					Particle(plant.rect.topleft, plant.image, self.all_sprites, z = LAYERS['main'])
-					self.soil_layer.grid[plant.rect.centery // TILE_SIZE][plant.rect.centerx // TILE_SIZE].remove('P')
-
 	def run(self,dt):		
 		# drawing logic
 		self.display_surface.fill('black')
 		self.all_sprites.custom_draw(self.player)
+
+		# animals
+		
 		
 		# updates
 		self.all_sprites.update(dt)
 		self.player.update_non_collisions()
-		self.plant_collision()
-		self.update_animal_collision() #WORKS BUT LAGS GAME
+		self.update_animal_collision()
 
-		#overlay
-		self.overlay.run()
+		# overlay
+		self.overlay.run(dt)
 
 		# weather
 		if self.raining:

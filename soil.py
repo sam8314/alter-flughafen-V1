@@ -56,11 +56,12 @@ class Plant(pygame.sprite.Sprite):
 			self.rect = self.image.get_rect(midbottom = self.soil.rect.midbottom + pygame.math.Vector2(0,self.y_offset))
 
 class SoilLayer:
-	def __init__(self, all_sprites, collision_sprites):
+	def __init__(self, all_sprites, collision_sprites, animal_collision_sprites):
 
 		# sprite groups
 		self.all_sprites = all_sprites
 		self.collision_sprites = collision_sprites
+		self.animal_collision_sprites = animal_collision_sprites
 		self.soil_sprites = pygame.sprite.Group()
 		self.water_sprites = pygame.sprite.Group()
 		self.plant_sprites = pygame.sprite.Group()

@@ -217,7 +217,6 @@ class Player(pygame.sprite.Sprite):
 
 			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Board':
 				self.overlay.displaying_board = True
-				print('here')
 
 			if len(pygame.sprite.spritecollide(self,self.interaction,False)) >0 and pygame.sprite.spritecollide(self,self.interaction,False)[0].name == 'Biologist':
 				self.overlay.colliding_bio = True				
@@ -225,7 +224,7 @@ class Player(pygame.sprite.Sprite):
 				self.overlay.displaying_message_bio = True
 
 			#species
-			for tile in SPECIES_TILES:
+			for tile in SPECIES_TILES: #trees, flowers and mushrooms
 				if len(pygame.sprite.spritecollide(self, self.interaction, False)) >0 and pygame.sprite.spritecollide(self,self.interaction, False)[0].name == tile:
 					species = SPECIES[SPECIES_TILES.index(tile)]
 					if not (self.known_species.is_here(species)):
@@ -233,10 +232,11 @@ class Player(pygame.sprite.Sprite):
 						self.known_species.push(species)
 						self.overlay.popup_name = species
 						self.overlay.start_time = time.time()
-						self.overlay.displaying_popup_new_species = True		
+						self.overlay.displaying_popup_new_species = True	
+			
+				
 					
 	def move(self,dt):
-
 		# normalizing a vector 
 		if self.direction.magnitude() > 0:
 			self.direction = self.direction.normalize()

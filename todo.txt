@@ -1,0 +1,6 @@
+* BUG == animal not displaying when moving (animation good, frame_index updates but does not display on screen :: in level.py fix run(self) ?)
+* make a sprites group for animals
+* add animal to species dictionnary when the collision with player is good
+* make generale rule of the frog:
+    * in settings.py do a ANIMALS list like the SPECIES
+* change frog animation
